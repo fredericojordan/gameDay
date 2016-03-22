@@ -1,57 +1,35 @@
 package com.fvj.gameday;
 
-/**
- * Created by fvj on 01/02/2016.
- */
-
 import java.util.ArrayList;
 import java.util.List;
 
-import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 public class GameDayService extends RemoteViewsService {
+
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new StackRemoteViewsFactory(this.getApplicationContext(), intent);
+        return new StackRemoteViewsFactory(this.getApplicationContext());
     }
 }
 
-class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
-    private static final int mCount = 10;
-    private List<WidgetItem> mWidgetItems = new ArrayList<WidgetItem>();
-    private Context mContext;
-    private int mAppWidgetId;
+class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, AsyncResponse {
 
-    public StackRemoteViewsFactory(Context context, Intent intent) {
+    private List<MatchInfo> mWidgetItems = new ArrayList<>();
+    private Context mContext;
+
+    public StackRemoteViewsFactory(Context context) {
         mContext = context;
-        mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
-                AppWidgetManager.INVALID_APPWIDGET_ID);
     }
 
     public void onCreate() {
         // In onCreate() you setup any connections / cursors to your data source. Heavy lifting,
         // for example downloading or creating content etc, should be deferred to onDataSetChanged()
         // or getViewAt(). Taking more than 20 seconds in this call will result in an ANR.
-        for (int i = 0; i < mCount; i++) {
-            if (i == 5) {
-                mWidgetItems.add(new WidgetItem(i + "!!"));
-            } else
-                mWidgetItems.add(new WidgetItem(i + "!"));
-        }
-
-        // We sleep for 3 seconds here to show how the empty view appears in the interim.
-        // The empty view is set in the StackWidgetProvider and should be a sibling of the
-        // collection view.
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        callForRefresh();
     }
 
     public void onDestroy() {
@@ -61,35 +39,24 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     }
 
     public int getCount() {
-        return mCount;
+        return mWidgetItems.size();
     }
 
     public RemoteViews getViewAt(int position) {
         // position will always range from 0 to getCount() - 1.
+        System.out.println("Loading view " + position);
 
-        // We construct a remote views item based on our widget item xml file, and set the
-        // text based on the position.
-        RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.widget_item);
-        rv.setTextViewText(R.id.widget_item, mWidgetItems.get(position).text);
+        RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.match_info);
 
-        // Next, we set a fill-intent which will be used to fill-in the pending intent template
-        // which is set on the collection view in StackWidgetProvider.
-        Bundle extras = new Bundle();
-        extras.putInt(GameDayWidgetProvider.EXTRA_ITEM, position);
-        Intent fillInIntent = new Intent();
-        fillInIntent.putExtras(extras);
-        rv.setOnClickFillInIntent(R.id.widget_item, fillInIntent);
+        String teams =  String.format("%s vs %s", mWidgetItems.get(position).team1, mWidgetItems.get(position).team2);
+        rv.setTextViewText(R.id.match_teams, teams);
+
+        rv.setTextViewText(R.id.match_time, mWidgetItems.get(position).matchTime);
 
         // You can do heaving lifting in here, synchronously. For example, if you need to
         // process an image, fetch something from the network, etc., it is ok to do it here,
         // synchronously. A loading view will show up in lieu of the actual contents in the
         // interim.
-        try {
-            System.out.println("Loading view " + position);
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         // Return the remote views object.
         return rv;
@@ -120,5 +87,16 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
         // from the network, etc., it is ok to do it here, synchronously. The widget will remain
         // in its current state while work is being done here, so you don't need to worry about
         // locking up the widget.
+        callForRefresh();
+    }
+
+    public void callForRefresh() {
+        WebManager parser = new WebManager(mContext);
+        parser.delegate = this;
+        parser.execute("");
+    }
+
+    public void processFinish(Context context, ArrayList<MatchInfo> matches) {
+        this.mWidgetItems = matches;
     }
 }
