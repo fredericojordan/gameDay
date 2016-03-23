@@ -3,6 +3,8 @@ package com.fvj.gameday;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.widget.RemoteViews;
@@ -51,7 +53,7 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, 
         String teams =  String.format("%s vs %s", mWidgetItems.get(position).team1, mWidgetItems.get(position).team2);
         rv.setTextViewText(R.id.match_teams, teams);
 
-        rv.setTextViewText(R.id.match_time, mWidgetItems.get(position).matchTime);
+        rv.setTextViewText(R.id.match_time, mWidgetItems.get(position).time);
 
         // You can do heaving lifting in here, synchronously. For example, if you need to
         // process an image, fetch something from the network, etc., it is ok to do it here,
@@ -87,7 +89,6 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, 
         // from the network, etc., it is ok to do it here, synchronously. The widget will remain
         // in its current state while work is being done here, so you don't need to worry about
         // locking up the widget.
-        callForRefresh();
     }
 
     public void callForRefresh() {
@@ -98,5 +99,13 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, 
 
     public void processFinish(Context context, ArrayList<MatchInfo> matches) {
         this.mWidgetItems = matches;
+        notifyDataChange();
+    }
+
+    private void notifyDataChange() {
+        AppWidgetManager widgetManager = AppWidgetManager.getInstance(mContext);
+        ComponentName component = new ComponentName(mContext, WidgetProvider.class);
+        int[] widgetIds = widgetManager.getAppWidgetIds(component);
+        widgetManager.notifyAppWidgetViewDataChanged(widgetIds, R.id.stack_view);
     }
 }
