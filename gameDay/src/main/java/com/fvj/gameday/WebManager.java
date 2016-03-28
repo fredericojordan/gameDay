@@ -6,13 +6,16 @@ import android.util.Log;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
 
 public class WebManager extends AsyncTask<String, Void, ArrayList<MatchInfo>> {
     private static final String TAG = "WebManager";
-    public static final String URL = "http://www.hltv.org/matches/";
+    public static final String URL = "http://wiki.teamliquid.net/counterstrike/Liquipedia:Upcoming_and_ongoing_matches";
+
+    public static int MAX_UPCOMING_GAMES = 10;
 
     private Context mContext = null;
     public AsyncResponse delegate = null;
@@ -35,16 +38,34 @@ public class WebManager extends AsyncTask<String, Void, ArrayList<MatchInfo>> {
     }
 
     protected ArrayList<MatchInfo> parseMatchesPage(Document doc) {
-        System.out.println("Parsing...");
-
-//        <div class="panel panel-default col-xs-12">
-        Elements match_divs = doc.select("div[class^=panel panel-default col-xs-12]");
-
-        System.out.println("Size: " + match_divs.size());
-
+        System.out.println("Printing...");
         ArrayList<MatchInfo> matches = new ArrayList<MatchInfo>();
-        for (int i=0; i<match_divs.size(); i++) {
-            matches.add(new MatchInfo(match_divs.eq(i)));
+
+        Element ongoing_div = doc.select("div[id=infobox_matches]").get(0);
+        Elements ongoing_games = ongoing_div.select("table[class=wikitable infobox_matches_content]");
+        System.out.println(ongoing_games.size() + " ongoing games.");
+
+        for (int i=0; i<ongoing_games.size(); i++) {
+            Elements match_div = ongoing_games.eq(i);
+            String team1 = match_div.select("td[class=team-left]").text();
+            String team2 = match_div.select("td[class=team-right]").text();
+            String time = "LIVE";
+            String score = match_div.select("td[class=versus]").text();
+            matches.add(new MatchInfo(team1, team2, time, score));
+        }
+
+        Element upcoming_div = doc.select("div[id=infobox_matches]").get(1);
+        Elements upcoming_games = upcoming_div.select("table[class=wikitable infobox_matches_content]");
+        System.out.println(upcoming_games.size() + " upcoming games. Showing first " + MAX_UPCOMING_GAMES + " entries...");
+
+        for (int i=0; i<upcoming_games.size(); i++) {
+            if (i>MAX_UPCOMING_GAMES) break;
+            Elements match_div = upcoming_games.eq(i);
+            String team1 = match_div.select("td[class=team-left]").text();
+            String team2 = match_div.select("td[class=team-right]").text();
+            String time = match_div.select("span[class=datetime]").text();
+            String score = "vs";
+            matches.add(new MatchInfo(team1, team2, time, score));
         }
         return matches;
     }

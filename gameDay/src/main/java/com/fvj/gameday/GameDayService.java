@@ -50,9 +50,8 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, 
 
         RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.match_info);
 
-        String teams =  String.format("%s vs %s", mWidgetItems.get(position).team1, mWidgetItems.get(position).team2);
+        String teams =  String.format("%s %s %s", mWidgetItems.get(position).team1, mWidgetItems.get(position).score, mWidgetItems.get(position).team2);
         rv.setTextViewText(R.id.match_teams, teams);
-
         rv.setTextViewText(R.id.match_time, mWidgetItems.get(position).time);
 
         // You can do heaving lifting in here, synchronously. For example, if you need to
