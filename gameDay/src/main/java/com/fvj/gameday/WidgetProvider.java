@@ -15,7 +15,6 @@ public class WidgetProvider extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(TOAST_ACTION)) {
-            Toast.makeText(context, "Refreshing...", Toast.LENGTH_SHORT).show();
         }
         super.onReceive(context, intent);
     }

@@ -54,14 +54,15 @@ public class WebManager extends AsyncTask<String, Void, ArrayList<MatchInfo>> {
             Elements match_div = ongoing_games.eq(i);
             String team1 = match_div.select("td[class=team-left]").text();
             String team2 = match_div.select("td[class=team-right]").text();
-            String time = "LIVE";
+            String time = "LIVE!";
             String score = match_div.select("td[class=versus]").text();
-            matches.add(new MatchInfo(team1, team2, time, score));
+            String league = parseLeague(match_div);
+            matches.add(new MatchInfo(team1, team2, time, score, league));
         }
 
         Element upcoming_div = doc.select("div[id=infobox_matches]").get(1);
         Elements upcoming_games = upcoming_div.select("table[class=wikitable infobox_matches_content]");
-        System.out.println(upcoming_games.size() + " upcoming games. Showing first " + MAX_UPCOMING_GAMES + " entries...");
+        System.out.println(upcoming_games.size() + " total upcoming games. Showing only first " + MAX_UPCOMING_GAMES + " entries...");
 
         for (int i=0; i<upcoming_games.size(); i++) {
             if (i>MAX_UPCOMING_GAMES) break;
@@ -70,7 +71,8 @@ public class WebManager extends AsyncTask<String, Void, ArrayList<MatchInfo>> {
             String team2 = match_div.select("td[class=team-right]").text();
             String time = parseTime(match_div);
             String score = "vs";
-            matches.add(new MatchInfo(team1, team2, time, score));
+            String league = parseLeague(match_div);
+            matches.add(new MatchInfo(team1, team2, time, score, league));
         }
         return matches;
     }
@@ -80,12 +82,17 @@ public class WebManager extends AsyncTask<String, Void, ArrayList<MatchInfo>> {
         DateFormat inputDateFormat = new SimpleDateFormat("MMMMM dd, yyyy - HH:mm z", Locale.ENGLISH); // March 29, 2016 - 19:00 UTC
         try {
             Date date = inputDateFormat.parse(time_str);
-            DateFormat outputDateFormat = new SimpleDateFormat("E, HH:mm");
+            DateFormat outputDateFormat = new SimpleDateFormat("E, HH:mm"); // Ter, 14:00
             return outputDateFormat.format(date);
         } catch (ParseException e) {
             e.printStackTrace();
             return time_str;
         }
+    }
+
+    protected String parseLeague(Elements match_div) {
+        Element league_element = match_div.select("td[class=match-filler]").first().children().last();
+        return league_element.text();
     }
 
     protected void onPostExecute(ArrayList<MatchInfo> matches) {

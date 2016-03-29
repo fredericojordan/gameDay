@@ -53,6 +53,7 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, 
         String teams =  String.format("%s %s %s", mWidgetItems.get(position).team1, mWidgetItems.get(position).score, mWidgetItems.get(position).team2);
         rv.setTextViewText(R.id.match_teams, teams);
         rv.setTextViewText(R.id.match_time, mWidgetItems.get(position).time);
+        rv.setTextViewText(R.id.match_league, mWidgetItems.get(position).league);
 
         // You can do heaving lifting in here, synchronously. For example, if you need to
         // process an image, fetch something from the network, etc., it is ok to do it here,
