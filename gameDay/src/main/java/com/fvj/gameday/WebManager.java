@@ -9,7 +9,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class WebManager extends AsyncTask<String, Void, ArrayList<MatchInfo>> {
     private static final String TAG = "WebManager";
@@ -63,15 +68,27 @@ public class WebManager extends AsyncTask<String, Void, ArrayList<MatchInfo>> {
             Elements match_div = upcoming_games.eq(i);
             String team1 = match_div.select("td[class=team-left]").text();
             String team2 = match_div.select("td[class=team-right]").text();
-            String time = match_div.select("span[class=datetime]").text();
+            String time = parseTime(match_div);
             String score = "vs";
             matches.add(new MatchInfo(team1, team2, time, score));
         }
         return matches;
     }
 
-    protected void onPostExecute(ArrayList<MatchInfo> matches) {
+    protected String parseTime(Elements match_div) {
+        String time_str = match_div.select("span[class=datetime]").text();
+        DateFormat inputDateFormat = new SimpleDateFormat("MMMMM dd, yyyy - HH:mm z", Locale.ENGLISH); // March 29, 2016 - 19:00 UTC
+        try {
+            Date date = inputDateFormat.parse(time_str);
+            DateFormat outputDateFormat = new SimpleDateFormat("E, HH:mm");
+            return outputDateFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return time_str;
+        }
+    }
 
+    protected void onPostExecute(ArrayList<MatchInfo> matches) {
         if ( matches != null ) {
             System.out.printf("Returning %d matches...%n", matches.size());
             delegate.processFinish(mContext, matches);
