@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:textColor="@color/textColor"
+        android:textColor="@color/lightText"
         android:textSize="15sp"
         android:textStyle="bold" />
 
@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:textColor="@color/textColor"
+        android:textColor="@color/lightText"
         android:textSize="12sp" />
 
     <TextView xmlns:android="http://schemas.android.com/apk/res/android"
@@ -32,7 +32,16 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:textColor="@color/textColor"
+        android:textColor="@color/lightText"
         android:textSize="12sp" />
+
+    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/refresh_timestamp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:gravity="right"
+        android:textColor="@color/darkText"
+        android:textSize="8sp" />
 
 </LinearLayout>

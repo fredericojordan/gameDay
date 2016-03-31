@@ -14,6 +14,8 @@ public class WidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        System.out.println("Intent: " + intent.getAction().toString());
+
         if (intent.getAction().equals(TOAST_ACTION)) {
         }
         super.onReceive(context, intent);
@@ -38,7 +40,7 @@ public class WidgetProvider extends AppWidgetProvider {
         // into the data so that the extras will not be ignored.
         intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
         RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.game_day_widget);
-        rv.setRemoteAdapter(appWidgetId, R.id.stack_view, intent);
+        rv.setRemoteAdapter(R.id.stack_view, intent);
 
         // The empty view is displayed when the collection has no items. It should be a sibling
         // of the collection view.
@@ -51,9 +53,8 @@ public class WidgetProvider extends AppWidgetProvider {
         Intent toastIntent = new Intent(context, WidgetProvider.class);
         toastIntent.setAction(WidgetProvider.TOAST_ACTION);
         toastIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
-        PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        toastIntent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+        PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         rv.setPendingIntentTemplate(R.id.stack_view, toastPendingIntent);
 
         appWidgetManager.updateAppWidget(appWidgetId, rv);

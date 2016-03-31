@@ -1,6 +1,8 @@
 package com.fvj.gameday;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import android.appwidget.AppWidgetManager;
@@ -19,6 +21,9 @@ public class GameDayService extends RemoteViewsService {
 }
 
 class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, AsyncResponse {
+
+    private Date lastRefresh = new Date(0);
+    private SimpleDateFormat refreshFormat = new SimpleDateFormat("HH:mm ");
 
     private List<MatchInfo> mWidgetItems = new ArrayList<>();
     private Context mContext;
@@ -45,22 +50,25 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, 
     }
 
     public RemoteViews getViewAt(int position) {
-        // position will always range from 0 to getCount() - 1.
-        System.out.println("Loading view " + position);
-
-        RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.match_info);
-
-        String teams =  String.format("%s %s %s", mWidgetItems.get(position).team1, mWidgetItems.get(position).score, mWidgetItems.get(position).team2);
-        rv.setTextViewText(R.id.match_teams, teams);
-        rv.setTextViewText(R.id.match_time, mWidgetItems.get(position).time);
-        rv.setTextViewText(R.id.match_league, mWidgetItems.get(position).league);
-
         // You can do heaving lifting in here, synchronously. For example, if you need to
         // process an image, fetch something from the network, etc., it is ok to do it here,
         // synchronously. A loading view will show up in lieu of the actual contents in the
         // interim.
 
-        // Return the remote views object.
+        // position will always range from 0 to getCount() - 1.
+        System.out.println("Loading view " + position);
+
+        RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.match_info);
+
+        if (position >= mWidgetItems.size())
+            return rv;
+
+        String teams =  String.format("%s %s %s", mWidgetItems.get(position).team1, mWidgetItems.get(position).score, mWidgetItems.get(position).team2);
+        rv.setTextViewText(R.id.match_teams, teams);
+        rv.setTextViewText(R.id.match_time, mWidgetItems.get(position).time);
+        rv.setTextViewText(R.id.match_league, mWidgetItems.get(position).league);
+        rv.setTextViewText(R.id.refresh_timestamp, refreshFormat.format(lastRefresh));
+
         return rv;
     }
 
@@ -98,6 +106,7 @@ class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, 
     }
 
     public void processFinish(Context context, ArrayList<MatchInfo> matches) {
+        this.lastRefresh = new Date();
         this.mWidgetItems = matches;
         notifyDataChange();
     }
